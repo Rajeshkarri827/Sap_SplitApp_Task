@@ -176,6 +176,12 @@
                     </VBox>
                 </Page>
 
+                <Page id="detailPage_NoData" title="No Details Available">
+                     <VBox id="_IDGenVBox8" class="sapUiSmallMargin" justifyContent="Center" alignItems="Center" height="100%">
+                            <Text id="_IDGenText" text=" No Data Found" class="sapUiLargeMargin"/>
+                    </VBox>
+                </Page>
+
             </detailPages>
 
         </SplitApp>

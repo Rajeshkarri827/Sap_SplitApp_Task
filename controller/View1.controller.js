@@ -127,21 +127,44 @@ sap.ui.define([
             this.getView().setModel(oOrdersModel);
         },
 
+        // onUpdateFinish: function (oEvent) {
+        //     var oList = oEvent.getSource();
+        //     var oCountText = this.byId("orderCountText");
+
+        //     oCountText.setText("Total Orders: " + (oEvent.getParameter("total") || 0));
+
+        //     var aItems = oList.getItems();
+        //     if (aItems.length > 0) {
+        //         var oFirst = aItems[0];
+        //         oList.setSelectedItem(oFirst);
+
+        //         var ctx = oFirst.getBindingContext();
+        //         this._showDetailPage(ctx.getObject().Category, ctx.getPath());
+        //     }
+        // },
         onUpdateFinish: function (oEvent) {
-            var oList = oEvent.getSource();
-            var oCountText = this.byId("orderCountText");
+                 var oList = oEvent.getSource();
+                 var oCountText = this.byId("orderCountText");
+                 var iTotal = oEvent.getParameter("total") || 0;
 
-            oCountText.setText("Total Orders: " + (oEvent.getParameter("total") || 0));
+                 oCountText.setText("Total Orders: " + iTotal);
 
-            var aItems = oList.getItems();
-            if (aItems.length > 0) {
-                var oFirst = aItems[0];
-                oList.setSelectedItem(oFirst);
+                 var oSplitApp = this.byId("SplitApp");
 
-                var ctx = oFirst.getBindingContext();
-                this._showDetailPage(ctx.getObject().Category, ctx.getPath());
-            }
-        },
+                 if (iTotal === 0) {
+                 var oNoDataPage = this.byId("detailPage_NoData");
+                 oSplitApp.toDetail(oNoDataPage);
+                } else {
+                    var aItems = oList.getItems();
+                    if (aItems.length > 0) {
+                    var oFirst = aItems[0];
+                    oList.setSelectedItem(oFirst);
+
+                    var ctx = oFirst.getBindingContext();
+                    this._showDetailPage(ctx.getObject().Category, ctx.getPath());
+                    }
+                }
+            },
 
         onSearch: function (oEvent) {
             var sQuery = oEvent.getParameter("newValue");
@@ -217,28 +240,29 @@ sap.ui.define([
             }
         },
 
-        _showDetailPage: function (sCategory, sPath) {
-            var oSplitApp = this.byId("SplitApp");
-            var sPageId = "";
+            _showDetailPage: function (sCategory, sPath) {
+                var oSplitApp = this.byId("SplitApp");
+                var sPageId = "";
+                
+                switch (sCategory) {
+                    case "Computer Peripherals":
+                         sPageId = "detailPage_CP";
+                          break;
+                    case "Mobiles":
+                         sPageId = "detailPage_MB"; 
+                         break;
+                    case "Music Systems":
+                         sPageId = "detailPage_MS"; 
+                         break;
+                    default:
+                         sPageId = "detailPage_CP";
+                }
 
-            switch (sCategory) {
-                case "Computer Peripherals":
-                     sPageId = "detailPage_CP";
-                      break;
-                case "Mobiles":
-                     sPageId = "detailPage_MB"; 
-                     break;
-                case "Music Systems":
-                     sPageId = "detailPage_MS"; 
-                     break;
-                default:
-                     sPageId = "detailPage_CP";
+                var oPage = this.byId(sPageId);
+                oPage.bindElement(sPath);
+                oSplitApp.toDetail(oPage);
             }
-
-            var oPage = this.byId(sPageId);
-            oPage.bindElement(sPath);
-            oSplitApp.toDetail(oPage);
-        }
+        
 
     });
 });
