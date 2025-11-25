@@ -1,0 +1,26 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog id="filterDialog" title="Filter Orders">
+
+        <VBox id="_IDGenVBox7" class="sapUiSmallMargin">
+
+            <Label id="_IDGenLabel" text="Enter Order ID" />
+            <Input id="orderIdInput" />
+
+            <Label id="_IDGenLabel1" text="Enter Customer Name" />
+            <Input id="customerNameInput" />
+
+            <Label id="_IDGenLabel2" text="Enter Category" />
+            <Input id="categoryInput" />
+
+        </VBox>
+
+        <beginButton>
+            <Button id="_IDGenButton1" text="Apply" press=".onApply" />
+        </beginButton>
+
+        <endButton>
+            <Button id="_IDGenButton3" text="Cancel" press=".onCancel" />
+        </endButton>
+
+    </Dialog>
+</core:FragmentDefinition>

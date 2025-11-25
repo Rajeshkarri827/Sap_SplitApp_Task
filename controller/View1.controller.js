@@ -2,78 +2,46 @@
 //     "sap/ui/core/mvc/Controller",
 //     "sap/ui/model/json/JSONModel",
 //     "sap/ui/model/Filter",
-//     "sap/ui/model/FilterOperator"
-// ], (Controller, JSONModel, Filter, FilterOperator) => {
+//     "sap/ui/model/FilterOperator",
+//     "sap/ui/core/Fragment"
+// ], function (Controller, JSONModel, Filter, FilterOperator, Fragment) {
 //     "use strict";
 
 //     return Controller.extend("naruto.splitapptask.controller.View1", {
-//         onInit() {
-//             const oView = this.getView();
-//             const oModel = new JSONModel();
-//             oModel.loadData("../model/data.json");
-//             oView.setModel(oModel);
 
-//             oModel.dataLoaded().then(() => {
-//                 const aOrders = oModel.getProperty("/Orders");
-//                 if (aOrders && aOrders.length > 0) {
-//                     const oList = oView.byId("_IDGenList1");
-//                     const oFirstItem = oList.getItems()[0];
-//                     if (oFirstItem) {
-//                         oList.setSelectedItem(oFirstItem);
-//                     }
-
-//                     const sCategory = aOrders[0].Category;
-//                     this._showDetailForCategory(sCategory, "/Orders/0");
-//                 }
-
-//                 // const oCountText = oView.byId("orderCountText");
-//                 // if (oCountText) {
-//                 //     oCountText.setText("Total Orders: " + (aOrders ? aOrders.length : 0));
-//                 // }
-//             });
+//         onInit: function () {
+//             var oOrdersModel = new JSONModel();
+//             oOrdersModel.loadData("../model/data.json");
+//             this.getView().setModel(oOrdersModel);
 //         },
 
-//         onUpdateFinish(oEvent){
-//             var sCount= oEvent.getParameter("total") ;
-//             this.byId("orderCountText").setText("TotalCount:" + sCount) ; 
+//         onUpdateFinish: function (oEvent) {
+//             var oList = oEvent.getSource();
+//             var oCountText = this.byId("orderCountText");
 
-//             // var oList = this.getView().byId("_IDGenList1");
-//             // var oFirstItem = oList.getItems()[0];
-//             //         if (oFirstItem) {
-//             //             oList.setSelectedItem(oFirstItem);
-//             //         }
+//             oCountText.setText("Total Orders: " + (oEvent.getParameter("total") || 0));
 
-//             // var oCategory=oFirstItem.getProperty("number");
-//             //         if(oCategory) {
+//             var aItems = oList.getItems();
+//             if (aItems.length > 0) {
+//                 var oFirst = aItems[0];
+//                 oList.setSelectedItem(oFirst);
 
-//             // _showDetailForCategory(sCategory, sPath) {
-
-//             // var oItem = oEvent.getParameter("listItem");
-//             // var oCtx = oItem.getBindingContext();
-//             // var oData = oCtx.getObject();
-
-//             // this._showDetailForCategory(oData.Category, oCtx.getPath());
-            
-            
-//             //         }
-//             //     }
-//         },
-
-//         onSearch(oEvent) {
-//             let sQuery = oEvent.getParameter("query");
-//             if (!sQuery) {
-//                 sQuery = oEvent.getParameter("newValue");
+//                 var ctx = oFirst.getBindingContext();
+//                 this._showDetailPage(ctx.getObject().Category, ctx.getPath());
 //             }
+//         },
 
-//             const oList = this.byId("_IDGenList1");
-//             const oBinding = oList.getBinding("items");
+//         onSearch: function (oEvent) {
+//             var sQuery = oEvent.getParameter("newValue");
+//             var oList = this.byId("orderList");
+//             var oBinding = oList.getBinding("items");
 
-//             if (!sQuery || sQuery.trim() === "") {
+//             if (!sQuery) {
 //                 oBinding.filter([]);
 //                 return;
 //             }
 
-//             const aFilters = [
+//             var aFilters = [
 //                 new Filter("OrderID", FilterOperator.Contains, sQuery),
 //                 new Filter("CustomerName", FilterOperator.Contains, sQuery),
 //                 new Filter("Category", FilterOperator.Contains, sQuery),
@@ -82,105 +50,106 @@
 //                 new Filter("ShippingAddress/Country", FilterOperator.Contains, sQuery)
 //             ];
 
-//             const oCombinedFilter = new Filter({
-//                 filters: aFilters,
-//                 and: false
-//             });
-
-//             oBinding.filter(oCombinedFilter);
+//             oBinding.filter(new Filter({ filters: aFilters, and: false }));
 //         },
 
-//         onItemPress(oEvent) {
-//             var oItem = oEvent.getParameter("listItem");
-//             var oCtx = oItem.getBindingContext();
-//             var oData = oCtx.getObject();
-
-//             this._showDetailForCategory(oData.Category, oCtx.getPath());
-
-//             var oSearchField = this.byId("searchField");
-//             if (oSearchField) {
-//                 oSearchField.setValue("");
+//         onOpenfilter: function () {
+//             if (!this.oFilterDialog) {
+//                 Fragment.load({
+//                     name: "naruto.splitapptask.Fragment.filter",
+//                     controller: this
+//                 }).then(function (oDialog) {
+//                     this.oFilterDialog = oDialog;
+//                     this.getView().addDependent(oDialog);
+//                     oDialog.open();
+//                 }.bind(this));
+//             } else {
+//                 this.oFilterDialog.open();
 //             }
-
-//             const oList = this.byId("_IDGenList1");
-//             const oBinding = oList.getBinding("items");
-//             oBinding.filter([]);
 //         },
 
-//         _showDetailForCategory(sCategory, sPath) {
-//             const oSplitApp = this.byId("SplitApp");
-//             let sDetailPageId;
+//         onApply: function () {
+//             var sId = sap.ui.getCore().byId("orderIdInput").getValue();
+//             var sName = sap.ui.getCore().byId("customerNameInput").getValue();
+//             var sCategory = sap.ui.getCore().byId("categoryInput").getValue();
+
+//             var aFilters = [];
+//             if (sId) aFilters.push(new Filter("OrderID", FilterOperator.Contains, sId));
+//             if (sName) aFilters.push(new Filter("CustomerName", FilterOperator.Contains, sName));
+//             if (sCategory) aFilters.push(new Filter("Category", FilterOperator.Contains, sCategory));
+
+//             this.byId("orderList").getBinding("items").filter(aFilters);
+//             this.oFilterDialog.close();
+//         },
+
+//         onCancel: function () {
+//             this.oFilterDialog.close();
+//         },
+
+//         onItemPress: function (oEvent) {
+//             var ctx = oEvent.getParameter("listItem").getBindingContext();
+//             this._showDetailPage(ctx.getObject().Category, ctx.getPath());
+//         },
+
+//         _showDetailPage: function (sCategory, sPath) {
+//             var oSplitApp = this.byId("SplitApp");
+//             var sPageId = "";
 
 //             switch (sCategory) {
-//                 case "Computer Peripherals":
-//                     sDetailPageId = "detailPage_CP";
-//                     break;
-//                 case "Mobiles":
-//                     sDetailPageId = "detailPage_MB";
-//                     break;
-//                 case "Music Systems":
-//                     sDetailPageId = "detailPage_MS";
-//                     break;
-//                 default:
-//                     sDetailPageId = "detailPage_CP";
+//                 case "Computer Peripherals": sPageId = "detailPage_CP"; break;
+//                 case "Mobiles": sPageId = "detailPage_MB"; break;
+//                 case "Music Systems": sPageId = "detailPage_MS"; break;
+//                 default: sPageId = "detailPage_CP";
 //             }
 
-//             const oDetailPage = this.byId(sDetailPageId);
-//             if (oDetailPage) {
-//                 oDetailPage.bindElement(sPath);
-//                 oSplitApp.toDetail(oDetailPage);
-//             }
+//             var oPage = this.byId(sPageId);
+//             oPage.bindElement(sPath);
+//             oSplitApp.toDetail(oPage);
 //         }
+
 //     });
 // });
-
-
 
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
     "sap/ui/model/Filter",
-    "sap/ui/model/FilterOperator"
-], function(Controller, JSONModel, Filter, FilterOperator) {
+    "sap/ui/model/FilterOperator",
+    "sap/ui/core/Fragment"
+], function (Controller, JSONModel, Filter, FilterOperator, Fragment) {
     "use strict";
 
     return Controller.extend("naruto.splitapptask.controller.View1", {
 
-        onInit: function() {
-            var oView = this.getView();
+        onInit: function () {
             var oOrdersModel = new JSONModel();
             oOrdersModel.loadData("../model/data.json");
-            oView.setModel(oOrdersModel);
+            this.getView().setModel(oOrdersModel);
         },
 
-        onUpdateFinish: function(oEvent) {
+        onUpdateFinish: function (oEvent) {
             var oList = oEvent.getSource();
-            var iTotalOrders = oEvent.getParameter("total") || 0;
+            var oCountText = this.byId("orderCountText");
 
-            var oOrderCountText = this.byId("orderCountText");
-            if (oOrderCountText) {
-                oOrderCountText.setText("Total Orders: " + iTotalOrders);
-            }
+            oCountText.setText("Total Orders: " + (oEvent.getParameter("total") || 0));
 
-            var aVisibleItems = oList.getItems();
-            if (aVisibleItems.length > 0) {
-                var oFirstItem = aVisibleItems[0];
-                oList.setSelectedItem(oFirstItem);
+            var aItems = oList.getItems();
+            if (aItems.length > 0) {
+                var oFirst = aItems[0];
+                oList.setSelectedItem(oFirst);
 
-                var oItemContext = oFirstItem.getBindingContext();
-                var oItemData = oItemContext.getObject();
-                this._showDetailPage(oItemData.Category, oItemContext.getPath());
+                var ctx = oFirst.getBindingContext();
+                this._showDetailPage(ctx.getObject().Category, ctx.getPath());
             }
         },
 
-        onSearch: function(oEvent) {
-            var sQuery = oEvent.getParameter("query") || oEvent.getParameter("newValue");
+        onSearch: function (oEvent) {
+            var sQuery = oEvent.getParameter("newValue");
+            var oList = this.byId("orderList");
+            var oBinding = oList.getBinding("items");
 
-            var oList = this.byId("_IDGenList1");
-            var oItemsBinding = oList.getBinding("items");
-
-            if (!sQuery || sQuery.trim() === "") {
-                oItemsBinding.filter([]);
+            if (!sQuery) {
+                oBinding.filter([]);
                 return;
             }
 
@@ -193,41 +162,82 @@ sap.ui.define([
                 new Filter("ShippingAddress/Country", FilterOperator.Contains, sQuery)
             ];
 
-            var oCombinedFilter = new Filter({ filters: aFilters, and: false });
-            oItemsBinding.filter(oCombinedFilter);
+            oBinding.filter(new Filter({ filters: aFilters, and: false }));
         },
 
-        onItemPress: function(oEvent) {
-            var oSelectedItem = oEvent.getParameter("listItem");
-            var oItemContext = oSelectedItem.getBindingContext();
-            var oItemData = oItemContext.getObject();
-
-            this._showDetailPage(oItemData.Category, oItemContext.getPath());
+        onOpenfilter: function () {
+            if (!this.oFilterDialog) {
+                Fragment.load({
+                    name: "naruto.splitapptask.Fragment.filter",
+                    controller: this
+                }).then(function (oDialog) {
+                    this.oFilterDialog = oDialog;
+                    this.getView().addDependent(oDialog);
+                    oDialog.open();
+                }.bind(this));
+            } else {
+                this.oFilterDialog.open();
+            }
         },
 
-        _showDetailPage: function(sCategory, sBindingPath) {
+        onApply: function () {
+            var sId = sap.ui.getCore ().byId("orderIdInput").getValue();
+            var sName = sap.ui.getCore().byId("customerNameInput").getValue();
+            var sCategory = sap.ui.getCore().byId("categoryInput").getValue();
+
+            var aFilters = [];
+            if (sId) aFilters.push(new Filter("OrderID", FilterOperator.Contains, sId));
+            if (sName) aFilters.push(new Filter("CustomerName", FilterOperator.Contains, sName));
+            if (sCategory) aFilters.push(new Filter("Category", FilterOperator.Contains, sCategory));
+
+            this.byId("orderList").getBinding("items").filter(aFilters);
+            this.oFilterDialog.close();
+        },
+
+        onCancel: function () {
+            this.oFilterDialog.close();
+        },
+
+        onItemPress: function (oEvent) {
+            var ctx = oEvent.getParameter("listItem").getBindingContext();
+            this._showDetailPage(ctx.getObject().Category, ctx.getPath());
+        },
+
+        onClearFilter: function () {
+            var oList = this.byId("orderList");
+            var oBinding = oList.getBinding("items");
+
+            oBinding.filter([]);
+        
+            this.byId("searchField").setValue("");
+            if (this.oFilterDialog) {
+                sap.ui.getCore().byId("orderIdInput").setValue("");
+                sap.ui.getCore().byId("customerNameInput").setValue("");
+                sap.ui.getCore().byId("categoryInput").setValue("");
+            }
+        },
+
+        _showDetailPage: function (sCategory, sPath) {
             var oSplitApp = this.byId("SplitApp");
-            var sDetailPageId;
+            var sPageId = "";
 
             switch (sCategory) {
                 case "Computer Peripherals":
-                    sDetailPageId = "detailPage_CP";
-                    break;
+                     sPageId = "detailPage_CP";
+                      break;
                 case "Mobiles":
-                    sDetailPageId = "detailPage_MB";
-                    break;
+                     sPageId = "detailPage_MB"; 
+                     break;
                 case "Music Systems":
-                    sDetailPageId = "detailPage_MS";
-                    break;
+                     sPageId = "detailPage_MS"; 
+                     break;
                 default:
-                    sDetailPageId = "detailPage_CP";
+                     sPageId = "detailPage_CP";
             }
 
-            var oDetailPage = this.byId(sDetailPageId);
-            if (oDetailPage) {
-                oDetailPage.bindElement(sBindingPath);
-                oSplitApp.toDetail(oDetailPage);
-            }
+            var oPage = this.byId(sPageId);
+            oPage.bindElement(sPath);
+            oSplitApp.toDetail(oPage);
         }
 
     });
