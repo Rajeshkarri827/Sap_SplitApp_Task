@@ -1,0 +1,7 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <SelectDialog id="customerNameValueHelpDialog"
+                  title="Select Customer Name"
+                  items="{/Orders/}">
+        <StandardListItem id="_IDGenStandardListItem" title="{CustomerName}"  />
+    </SelectDialog>
+</core:FragmentDefinition>
