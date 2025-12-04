@@ -1,5 +1,6 @@
 <core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
     <Dialog id="filterDialog" title="Filter Orders">
+        <Button id="btnClearFilter1" text="clear Fields" icon="sap-icon://reset" press=".onClearFilter" />
 
         <VBox id="_IDGenVBox7" class="sapUiSmallMargin">
 
@@ -21,7 +22,7 @@
         </VBox>
        
         
-        <Button id="btnClearFilter1" text="clear Fields" icon="sap-icon://reset" press=".onClearFilter" />
+        
 
         <beginButton>
             <Button id="_IDGenButton1" text="Apply" press=".onApply" />
